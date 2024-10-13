@@ -7,5 +7,11 @@ WORKDIR /app
 # Copia o arquivo do jogo para o contêiner
 COPY jokenpo.py .
 
-# Define o comando para rodar o jogo
+# Instala o Flask
+RUN pip install flask
+
+# Expõe a porta 80
+EXPOSE 80
+
+# Define o comando para rodar o aplicativo
 CMD ["python", "jokenpo.py"]

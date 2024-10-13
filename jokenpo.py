@@ -1,16 +1,37 @@
+from flask import Flask, request, jsonify
 import random
 
-def get_user_choice():
-    choice = input("Escolha pedra, papel, tesoura ou digite SAIR para encerrar: ").strip().lower()
-    if choice == "sair":
-        return "sair"
-    elif choice not in ["pedra", "papel", "tesoura"]:
-        print("Escolha inválida, tente novamente.")
-        return get_user_choice()
-    return choice
+app = Flask(__name__)
 
-def get_computer_choice():
-    return random.choice(["pedra", "papel", "tesoura"])
+user_score = 0
+computer_score = 0
+rounds = 0
+
+@app.route('/')
+def index():
+    return "Bem-vindo ao Jogo de Jokenpô! Use a rota /play para jogar."
+
+@app.route('/play', methods=['POST'])
+def play_game():
+    global user_score, computer_score, rounds
+
+    user_choice = request.json.get('choice', '').lower()
+
+    if user_choice not in ['pedra', 'papel', 'tesoura']:
+        return jsonify({'error': 'Escolha inválida. Escolha entre pedra, papel ou tesoura.'}), 400
+    
+    computer_choice = random.choice(['pedra', 'papel', 'tesoura'])
+    result = determine_winner(user_choice, computer_choice)
+
+    if result == "Empate":
+        return jsonify({'result': 'Empate', 'computer_choice': computer_choice, 'score': {'user': user_score, 'computer': computer_score, 'rounds': rounds}})
+    elif result == "Você":
+        user_score += 1
+    else:
+        computer_score += 1
+
+    rounds += 1
+    return jsonify({'result': result, 'computer_choice': computer_choice, 'score': {'user': user_score, 'computer': computer_score, 'rounds': rounds}})
 
 def determine_winner(user_choice, computer_choice):
     if user_choice == computer_choice:
@@ -24,38 +45,13 @@ def determine_winner(user_choice, computer_choice):
     else:
         return "Computador"
 
-def play_game():
+@app.route('/reset', methods=['POST'])
+def reset_score():
+    global user_score, computer_score, rounds
     user_score = 0
     computer_score = 0
     rounds = 0
+    return jsonify({'message': 'Placar resetado!'})
 
-    while True:
-        user_choice = get_user_choice()
-        if user_choice == "sair":
-            print("Jogo encerrado!")
-            break
-
-        computer_choice = get_computer_choice()
-        print(f"Você escolheu: {user_choice}")
-        print(f"O computador escolheu: {computer_choice}")
-
-        result = determine_winner(user_choice, computer_choice)
-
-        if result == "Empate":
-            print("Foi um empate!")
-        elif result == "Você":
-            print("Você venceu esta rodada!")
-            user_score += 1
-        else:
-            print("O computador venceu esta rodada!")
-            computer_score += 1
-
-        rounds += 1
-        print(f"Placar: Você {user_score} x {computer_score} Computador (Rodadas: {rounds})")
-        print("-" * 30)
-
-    print(f"Placar final: Você {user_score} x {computer_score} Computador")
-    print("Obrigado por jogar!")
-
-if __name__ == "__main__":
-    play_game()
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=80)
