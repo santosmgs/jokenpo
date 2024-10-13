@@ -40,4 +40,4 @@ jobs:
           registry-username: ${{ secrets.REGISTRY_USERNAME }}
           registry-password: ${{ secrets.REGISTRY_PASSWORD }}
           name: jokenpo-aci
-          location: ${{ secrets.LOCATION }}
+          location: 'east-us'
